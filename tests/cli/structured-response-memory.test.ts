@@ -61,8 +61,8 @@ describe("CLI structured response memory", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  test("help lists the eight commands and new flags", async () => {
-    const help = await capture(() => main(["help"]));
+  test("help --all lists the eight commands and new flags", async () => {
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain("recommendation");
     expect(help.stdout).toContain("recommendations");

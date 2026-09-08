@@ -122,8 +122,8 @@ describe("CLI commands", () => {
     expect(result.stderr.toLowerCase()).toMatch(/token|use-gh|use-env/);
   });
 
-  test("help prints usage including github", async () => {
-    const result = await capture(() => main(["help"]));
+  test("help --all prints usage including github", async () => {
+    const result = await capture(() => main(["help", "--all"]));
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("combie init");
     expect(result.stdout).toContain("connect");
@@ -147,15 +147,15 @@ describe("CLI commands", () => {
     expect(result.stdout).toContain("investigate");
   });
 
-  test("help keeps LAST SYNC meaning and lists the attempt clock", async () => {
-    const result = await capture(() => main(["help"]));
+  test("help --all keeps LAST SYNC meaning and lists the attempt clock", async () => {
+    const result = await capture(() => main(["help", "--all"]));
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("LAST SYNC is last successful sync");
     expect(result.stdout).toContain("LAST ATTEMPT");
   });
 
-  test("help documents only the earned shell-native JSON flag", async () => {
-    const result = await capture(() => main(["help"]));
+  test("help --all documents only the earned shell-native JSON flag", async () => {
+    const result = await capture(() => main(["help", "--all"]));
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("--json");
     expect(result.stdout).not.toContain("--limit");
@@ -823,7 +823,7 @@ describe("CLI commands", () => {
     expect(blank.code).toBe(1);
     expect(blank.stderr).toContain("--resource requires a resource id");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain("--resource <resource-id>");
     expect(help.stdout).toContain(
@@ -838,7 +838,7 @@ describe("CLI commands", () => {
     expect(usage.code).toBe(1);
     expect(usage.stderr).toContain("investigation <investigation-id> [--compare]");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain("--compare");
     expect(help.stdout).toContain(
@@ -958,7 +958,7 @@ describe("CLI commands", () => {
     expect(usage.code).toBe(1);
     expect(usage.stderr).toContain("--investigation");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain("resolution");
     expect(help.stdout).toContain("resolutions");
@@ -1641,8 +1641,8 @@ describe("CLI commands", () => {
     expect(unknown.stderr).toContain("Resource not found");
   });
 
-  test("help lists resource-anchored resolution record", async () => {
-    const help = await capture(() => main(["help"]));
+  test("help --all lists resource-anchored resolution record", async () => {
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain(
       'With "resolution": resource to record against (no saved investigation)',
@@ -1810,7 +1810,7 @@ describe("CLI commands", () => {
     expect(unknown.code).toBe(1);
     expect(unknown.stderr).toContain("Incident not found");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain(
       "incident                     Record, show, add, or remove members of an explicit incident grouping of resolutions",
@@ -2082,7 +2082,7 @@ describe("CLI commands", () => {
     expect(shown.stdout).toContain(resA);
     expect(shown.stdout).toContain(resB);
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain(
       'With "incidents": list groupings that named that exact resolution id (membership only; one exact id)',
@@ -2299,7 +2299,7 @@ describe("CLI commands", () => {
     expect(blank.code).toBe(1);
     expect(blank.stderr).toContain("--investigation requires an investigation id");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain(
       'With "incidents": list groupings with a member Resolution recorded against that investigation (membership only; one exact id)',
@@ -2501,7 +2501,7 @@ describe("CLI commands", () => {
     expect(blank.code).toBe(1);
     expect(blank.stderr).toContain("--incident requires");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain(
       'With "resolution": existing incident grouping to record',
@@ -2760,7 +2760,7 @@ describe("CLI commands", () => {
     expect(repeated.code).toBe(1);
     expect(repeated.stderr).toContain("takes one exact id");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain(
       "resolution --incident inc:… --resource github:repository:1001",
     );
@@ -2965,7 +2965,7 @@ describe("CLI commands", () => {
     expect(createStill.code).toBe(1);
     expect(createStill.stderr).toMatch(/already belongs to another Incident/);
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain("incident inc:… --resolution res:…");
     expect(help.stdout).toContain(
       "With \"incident\": exact Resolution id to group at create",
@@ -3168,7 +3168,7 @@ describe("CLI commands", () => {
     expect(groupingSnapshots.code).toBe(1);
     expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain(
       "incident inc:… --remove-resolution res:…",
     );
@@ -3396,7 +3396,7 @@ describe("CLI commands", () => {
     expect(groupingSnapshots.code).toBe(1);
     expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain('incident inc:… --title "');
     expect(help.stdout).toContain("or to retitle");
   });
@@ -3609,7 +3609,7 @@ describe("CLI commands", () => {
     expect(groupingSnapshots.code).toBe(1);
     expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain("incident inc:… --clear-title");
     expect(help.stdout).toContain("--clear-title");
   });
@@ -3828,7 +3828,7 @@ describe("CLI commands", () => {
     expect(groupingSnapshots.code).toBe(1);
     expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain("incident inc:… --recorded-at");
     expect(help.stdout).toContain("--recorded-at");
   });
@@ -4068,7 +4068,7 @@ describe("CLI commands", () => {
     expect(groupingSnapshots.code).toBe(1);
     expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain("incident inc:… --occurred-at");
     expect(help.stdout).toContain("--occurred-at");
   });
@@ -4365,7 +4365,7 @@ describe("CLI commands", () => {
     expect(groupingSnapshots.code).toBe(1);
     expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain("--clear-occurred-at");
     expect(help.stdout).toContain("incident inc:… --clear-occurred-at");
 
@@ -4548,7 +4548,7 @@ describe("CLI commands", () => {
     expect(leftover.code).toBe(1);
     expect(leftover.stderr).toContain("do not pass --investigation");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain(
       "Investigation history appears on investigate and investigation reopen",
@@ -4763,14 +4763,14 @@ describe("CLI commands", () => {
     expect(missingResource.code).toBe(1);
     expect(missingResource.stdout).not.toContain("INCIDENT MEMORY");
 
-    const help = await capture(() => main(["help"]));
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain(
       "Incident memory appears on those same paths when groupings exist.",
     );
   });
 
-  test("help lists the resolutions --evidence list line and example", async () => {
-    const help = await capture(() => main(["help"]));
+  test("help --all lists the resolutions --evidence list line and example", async () => {
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain(
       `With "resolutions": list retained resolutions that attached that exact local id (membership only; one exact id)`,
@@ -5152,8 +5152,8 @@ describe("CLI commands", () => {
     expect(result.stdout.toLowerCase()).toMatch(/no relationships|sync/);
   });
 
-  test("help lists relationships command", async () => {
-    const result = await capture(() => main(["help"]));
+  test("help --all lists relationships command", async () => {
+    const result = await capture(() => main(["help", "--all"]));
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("relationships");
   });
@@ -5183,8 +5183,8 @@ describe("CLI commands", () => {
     expect(result.stderr).toContain("combie resources");
   });
 
-  test("help lists related command", async () => {
-    const result = await capture(() => main(["help"]));
+  test("help --all lists related command", async () => {
+    const result = await capture(() => main(["help", "--all"]));
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("related");
     expect(result.stdout).toContain("provider:kind:providerResourceId");

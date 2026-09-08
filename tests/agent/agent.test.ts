@@ -599,8 +599,8 @@ describe("CLI agent commands", () => {
     expect(bad.stderr).toContain("Unknown agent command");
   });
 
-  test("help lists the agent commands", async () => {
-    const result = await capture(() => main(["help"]));
+  test("help --all lists the agent commands", async () => {
+    const result = await capture(() => main(["help", "--all"]));
     expect(result.stdout).toContain("agent status");
     expect(result.stdout).toContain("agent setup");
     expect(result.stdout).toContain("agent remove");

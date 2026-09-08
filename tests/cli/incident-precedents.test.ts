@@ -116,8 +116,8 @@ describe("CLI precedents", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  test("help lists precedents and JSON allowlist includes only precedents among new commands", async () => {
-    const help = await capture(() => main(["help"]));
+  test("help --all lists precedents and JSON allowlist includes only precedents among new commands", async () => {
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain("precedents");
 
