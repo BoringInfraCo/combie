@@ -258,11 +258,6 @@ function optionalFlagText(
 async function main(argv: string[]): Promise<number> {
   const { command, positionals, flags, repeated } = parseArgs(argv);
 
-  if (command === "version" || flags.version === true) {
-    console.log(`combie ${VERSION}`);
-    return 0;
-  }
-
   if (command === "help") {
     const topic = positionals[0];
     const all = flags.all === true || typeof flags.all === "string";
@@ -287,18 +282,23 @@ async function main(argv: string[]): Promise<number> {
     return 0;
   }
 
-  if (!command) {
-    console.log(shortHelp().trimEnd());
-    return 0;
-  }
-
-  if (flags.help === true) {
+  if (flags.help === true && command) {
     const page = commandHelp(command);
     if (!page) {
       console.error(unknownHelpTopicMessage(command));
       return 1;
     }
     console.log(page.trimEnd());
+    return 0;
+  }
+
+  if (command === "version" || flags.version === true) {
+    console.log(`combie ${VERSION}`);
+    return 0;
+  }
+
+  if (!command) {
+    console.log(shortHelp().trimEnd());
     return 0;
   }
 

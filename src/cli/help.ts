@@ -462,12 +462,14 @@ ${GLOBAL_DIR}`,
   resolution: `combie resolution / resolutions — explicit investigation resolution memory
 
 Usage:
-  ${BINARY_NAME} resolution [id]
-  ${BINARY_NAME} resolution --investigation <id> [--decision/--action/--outcome]
-  ${BINARY_NAME} resolution --resource <resource-id> [--decision/--action/--outcome]
-  ${BINARY_NAME} resolution --incident <incident-id> [--decision/--action/--outcome]
-  ${BINARY_NAME} resolution --incident <incident-id> --resource <resource-id> [--decision/--action/--outcome]
+  ${BINARY_NAME} resolution <resolution-id>
+  ${BINARY_NAME} resolution --investigation <id> (--decision|--action|--outcome) [...]
+  ${BINARY_NAME} resolution --resource <resource-id> (--decision|--action|--outcome) [...]
+  ${BINARY_NAME} resolution --incident <incident-id> (--decision|--action|--outcome) [...]
+  ${BINARY_NAME} resolution --incident <incident-id> --resource <resource-id> (--decision|--action|--outcome) [...]
   ${BINARY_NAME} resolutions [--investigation|--resource|--evidence]
+
+Recording requires at least one of --decision, --action, or --outcome.
 
 Options:
   --investigation <id>         With "resolution": investigation to record against
@@ -693,16 +695,18 @@ See
   investigate <id>     Compose investigation context around a resource
 
 Remember
-  investigation [id]   List or reopen a saved snapshot
-  resolution [id]      Record, show, or list resolutions
-  incident [id]        Record, show, or list incident groupings
+  investigations       List saved investigation snapshots
+  investigation <id>   Reopen a saved snapshot
+  resolutions          List retained resolutions
+  resolution [id]      Record or show a resolution
+  incidents            List incident groupings
+  incident [id]        Record, show, or update an incident grouping
 
 Agents
   agent                MCP setup for Claude, Codex, Cursor
   mcp                  Start the read-only MCP server
 
 Also: relationships, changes, history, related, context,
-      investigations, resolutions, incidents,
       incident-link, precedents, recommendation, decision, action, outcome
 
 More:  ${BINARY_NAME} help <command>

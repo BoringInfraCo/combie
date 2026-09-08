@@ -47,6 +47,12 @@ describe("CLI grouped help", () => {
       expect(result.stdout).not.toContain(
         "LAST SYNC is last successful sync",
       );
+      expect(result.stdout).toContain("investigations");
+      expect(result.stdout).toContain("resolutions");
+      expect(result.stdout).toContain("incidents");
+      expect(result.stdout).toContain("investigation <id>");
+      expect(result.stdout).not.toContain("investigation [id]");
+      expect(result.stdout).not.toContain("List or reopen");
     }
   });
 
@@ -82,6 +88,22 @@ describe("CLI grouped help", () => {
     expect(result.stdout).toContain("--decision");
     expect(result.stdout).toContain("--resource");
     expect(result.stdout).toContain("--incident");
+    expect(result.stdout).toContain(
+      "at least one of --decision, --action, or --outcome",
+    );
+    expect(result.stdout).not.toContain("[--decision/--action/--outcome]");
+  });
+
+  test("version --help prints the version command page", async () => {
+    const help = await capture(() => main(["version", "--help"]));
+    expect(help.code).toBe(0);
+    expect(help.stdout).toContain("combie version");
+    expect(help.stdout).toContain("--version");
+    expect(help.stdout).not.toMatch(/^combie 0\.6\.1$/);
+
+    const flag = await capture(() => main(["--version"]));
+    expect(flag.code).toBe(0);
+    expect(flag.stdout).toBe("combie 0.6.1");
   });
 
   test("help nosuch fails without dumping full catalog", async () => {
