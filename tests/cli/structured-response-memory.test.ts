@@ -61,8 +61,8 @@ describe("CLI structured response memory", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  test("help lists the eight commands and new flags", async () => {
-    const help = await capture(() => main(["help"]));
+  test("help --all lists the eight commands and new flags", async () => {
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain("recommendation");
     expect(help.stdout).toContain("recommendations");
@@ -459,13 +459,10 @@ describe("CLI structured response memory", () => {
     expect(result.stderr).toContain("rec:missing");
   });
 
-  test("recommendation with no args prints usage", async () => {
+  test("recommendation with no args lists known-empty", async () => {
     const result = await capture(() => main(["recommendation", "--dir", dir]));
-    expect(result.code).toBe(1);
-    expect(result.stderr).toContain("Usage:");
-    expect(result.stderr).toContain("recommendation --resource");
-    expect(result.stderr).toContain("Show:");
-    expect(result.stderr).toContain("List ids:");
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("No recommendations recorded yet.");
   });
 
   test("incident-anchored recommendation records against a named member subject", async () => {

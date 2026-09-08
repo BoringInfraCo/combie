@@ -1,5 +1,6 @@
 import { Store } from "../storage/store.ts";
 import { alreadyInitialized } from "./errors.ts";
+import { BINARY_NAME } from "../cli/constants.ts";
 
 export interface InitResult {
   created: boolean;
@@ -26,7 +27,9 @@ export function initCombie(baseDir: string): InitResult {
     return {
       created: true,
       path: store.stateDir,
-      message: `Initialized Combie at ${store.stateDir}`,
+      message:
+        `Initialized Combie at ${store.stateDir}\n` +
+        `Next: ${BINARY_NAME} connect github --use-gh`,
     };
   } finally {
     store.close();

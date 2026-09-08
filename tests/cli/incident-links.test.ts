@@ -147,8 +147,8 @@ describe("CLI incident-link / incident-links", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  test("help lists incident-link and incident-links", async () => {
-    const help = await capture(() => main(["help"]));
+  test("help --all lists incident-link and incident-links", async () => {
+    const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain("incident-link");
     expect(help.stdout).toContain("incident-links");

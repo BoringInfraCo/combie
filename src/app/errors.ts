@@ -43,7 +43,7 @@ export function unknownProvider(provider: string): CombieError {
 export function alreadyInitialized(): CombieError {
   return new CombieError(
     "ALREADY_INITIALIZED",
-    "Combie is already initialized in this directory.",
+    `Combie is already initialized in this directory.\nNext: ${BINARY_NAME} connect github --use-gh`,
     0,
   );
 }

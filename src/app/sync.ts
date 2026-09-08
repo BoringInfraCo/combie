@@ -402,6 +402,12 @@ export async function syncProviders(options: SyncOptions): Promise<SyncResult> {
         : results[0]?.ok
           ? `\n${results[0].total} resources stored.`
           : "";
+    const next =
+      ok && totalResources > 0
+        ? `\nNext: ${BINARY_NAME} resources`
+        : ok
+          ? `\nNext: ${BINARY_NAME} providers`
+          : "";
 
     return {
       results,
@@ -410,7 +416,7 @@ export async function syncProviders(options: SyncOptions): Promise<SyncResult> {
       relationships,
       domainRelationships,
       codeMappingRelationships,
-      message: parts.join("\n\n") + summary,
+      message: parts.join("\n\n") + summary + next,
     };
   } finally {
     store.close();
