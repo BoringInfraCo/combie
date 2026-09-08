@@ -972,17 +972,28 @@ describe("CLI commands", () => {
     expect(live.stdout).not.toContain("RESOLUTION MEMORY");
   });
 
-  test("resolution requires a field and help lists capture flags", async () => {
+  test("resolution --investigation without fields lists; empty --decision still errors", async () => {
     await capture(() => main(["init", "--dir", dir]));
-    const blank = await capture(() =>
+    const listed = await capture(() =>
       main(["resolution", "--investigation", "inv:x", "--dir", dir]),
     );
-    expect(blank.code).toBe(1);
-    expect(blank.stderr).toContain("At least one of --decision, --action, or --outcome");
+    expect(listed.code).toBe(0);
+    expect(listed.stdout).toContain(
+      "No resolutions recorded for investigation inv:x.",
+    );
 
-    const usage = await capture(() => main(["resolution", "--dir", dir]));
-    expect(usage.code).toBe(1);
-    expect(usage.stderr).toContain("--investigation");
+    const blankDecision = await capture(() =>
+      main([
+        "resolution",
+        "--investigation",
+        "inv:x",
+        "--decision",
+        "--dir",
+        dir,
+      ]),
+    );
+    expect(blankDecision.code).toBe(1);
+    expect(blankDecision.stderr).toContain("--decision requires text");
 
     const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
@@ -1195,9 +1206,9 @@ describe("CLI commands", () => {
         dir,
       ]),
     );
-    expect(evidenceOnly.code).toBe(1);
-    expect(evidenceOnly.stderr).toContain(
-      "At least one of --decision, --action, or --outcome",
+    expect(evidenceOnly.code).toBe(0);
+    expect(evidenceOnly.stdout).toContain(
+      "No resolutions recorded for evidence dpl_abc.",
     );
 
     const showWithEvidence = await capture(() =>
@@ -1671,7 +1682,7 @@ describe("CLI commands", () => {
     const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain(
-      'With "resolution": resource to record against (no saved investigation)',
+      'or with "resolution" a resource to record against (no saved investigation)',
     );
     expect(help.stdout).toContain(
       'resolution --resource vercel:project:prj_abc --decision "Rollback"',
@@ -1839,7 +1850,7 @@ describe("CLI commands", () => {
     const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain(
-      "incident                     Record, show, add, or remove members of an explicit incident grouping of resolutions",
+      "incident [id]                List, record, show, or update an explicit incident grouping of resolutions",
     );
     expect(help.stdout).toContain(
       'incident --resolution res:… --resolution res:… --title "API error spike"',
@@ -2114,7 +2125,7 @@ describe("CLI commands", () => {
       'With "incidents": list groupings that named that exact resolution id (membership only; one exact id)',
     );
     expect(help.stdout).toContain(
-      'With "incidents": list groupings with a member Resolution on one subject',
+      'With "incident" / "incidents": list groupings with a member Resolution on one subject',
     );
     expect(help.stdout).toContain("incidents --resolution res:…");
     expect(help.stdout).toContain(
@@ -2328,7 +2339,7 @@ describe("CLI commands", () => {
     const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
     expect(help.stdout).toContain(
-      'With "incidents": list groupings with a member Resolution recorded against that investigation (membership only; one exact id)',
+      'With "incident" / "incidents": list groupings with a member Resolution recorded against that investigation (membership only; one exact id)',
     );
     expect(help.stdout).toContain("incidents --investigation inv:…");
   });
