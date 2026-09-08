@@ -53,6 +53,8 @@ describe("CLI commands", () => {
     const result = await capture(() => main(["init", "--dir", dir]));
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("Initialized");
+    expect(result.stdout).toContain("Next:");
+    expect(result.stdout).toContain("connect github --use-gh");
   });
 
   test("--dir requires an explicit path", async () => {
@@ -76,6 +78,8 @@ describe("CLI commands", () => {
     const result = await capture(() => main(["init", "--dir", dir]));
     expect(result.code).toBe(0);
     expect(result.stdout.toLowerCase()).toMatch(/already initialized|initialized/);
+    expect(result.stdout).toContain("Next:");
+    expect(result.stdout).toContain("connect github --use-gh");
   });
 
   test("providers fails when not initialized", async () => {
@@ -102,6 +106,20 @@ describe("CLI commands", () => {
     );
     expect(result.code).not.toBe(0);
     expect(result.stderr).toContain("combie init");
+  });
+
+  test("connect without a provider lists every supported id", async () => {
+    const result = await capture(() => main(["connect"]));
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("Usage:");
+    expect(result.stderr).toContain("Providers:");
+    expect(result.stderr).toContain("cloudflare");
+    expect(result.stderr).toContain("github");
+    expect(result.stderr).toContain("vercel");
+    expect(result.stderr).toContain("sentry");
+    expect(result.stderr).toContain("neon");
+    expect(result.stderr).toContain("planetscale");
+    expect(result.stderr).toContain("connect github --use-gh");
   });
 
   test("connect rejects unknown provider", async () => {

@@ -141,6 +141,7 @@ import {
 } from "../mcp/projections.ts";
 import { safeJson } from "../mcp/serialization.ts";
 import { serveMcp } from "../mcp/server.ts";
+import { supportedProviderIds } from "../provider/registry.ts";
 import { BINARY_NAME, VERSION } from "./constants.ts";
 import {
   HELP,
@@ -339,8 +340,11 @@ async function main(argv: string[]): Promise<number> {
       case "connect": {
         const providerId = positionals[0];
         if (!providerId) {
+          const supported = supportedProviderIds().join(", ");
           console.error(
-            `Usage: ${BINARY_NAME} connect <provider>\nExample: ${BINARY_NAME} connect cloudflare\n         ${BINARY_NAME} connect github --use-gh`,
+            `Usage: ${BINARY_NAME} connect <provider>\n` +
+              `Providers: ${supported}\n` +
+              `Example: ${BINARY_NAME} connect github --use-gh`,
           );
           return 1;
         }

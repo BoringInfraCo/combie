@@ -372,7 +372,10 @@ export async function connectProvider(
       provider: provider.name,
       accountId,
       accountName: auth.accountName,
-      message: `Connected ${provider.name}${accountPart}.\nCredential stored in the local restricted-permission credentials file.`,
+      message:
+        `Connected ${provider.name}${accountPart}.\n` +
+        `Credential stored in the local restricted-permission credentials file.\n` +
+        `Next: ${BINARY_NAME} sync`,
     };
   } finally {
     store.close();
