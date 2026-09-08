@@ -19,23 +19,23 @@ Commands:
   related <resource-id>        Show one-hop related context for a resource
   context <resource-id>        Compose current, related, and Change context
   investigate <resource-id>    Compose one-hop investigation context around a resource
-  investigations               List saved investigation snapshots
-  investigation <id>           Reopen a saved investigation snapshot (--compare: diff against current compose)
-  resolution                   Record or show an explicit investigation resolution
-  resolutions                  List retained resolution records
-  incident                     Record, show, add, or remove members of an explicit incident grouping of resolutions
-  incidents                    List retained incident groupings
-  incident-link                Record or show an explicit organizational link between two incidents
-  incident-links               List retained incident links
+  investigations               List saved investigation snapshots (alias of investigation with no id)
+  investigation [id]           List saved snapshots, or reopen one (--compare: diff against current compose)
+  resolution [id]              List, record, or show an explicit investigation resolution
+  resolutions                  List retained resolution records (alias of resolution with no id)
+  incident [id]                List, record, show, or update an explicit incident grouping of resolutions
+  incidents                    List retained incident groupings (alias of incident with no id)
+  incident-link [id]           List, record, or show an explicit organizational link between two incidents
+  incident-links               List retained incident links (alias of incident-link with no id)
   precedents                   Retrieve explicit and candidate precedents for one incident
-  recommendation               Record or show an explicit recommendation
-  recommendations              List retained recommendation records
-  decision                     Record or show an explicit decision on a recommendation
-  decisions                    List retained decision records
-  action                       Record or show an explicit attempted response
-  actions                      List retained action records
-  outcome                      Record or show an explicit outcome assessment
-  outcomes                     List retained outcome records
+  recommendation [id]          List, record, or show an explicit recommendation
+  recommendations              List retained recommendation records (alias of recommendation with no id)
+  decision [id]                List, record, or show an explicit decision on a recommendation
+  decisions                    List retained decision records (alias of decision with no id)
+  action [id]                  List, record, or show an explicit attempted response
+  actions                      List retained action records (alias of action with no id)
+  outcome [id]                 List, record, or show an explicit outcome assessment
+  outcomes                     List retained outcome records (alias of outcome with no id)
   mcp                          Start read-only MCP server over stdio
   agent status                 Show MCP integration status for claude, codex, cursor
   agent setup [agent...]       Configure MCP access for agents (default: all supported)
@@ -70,16 +70,15 @@ Investigate options:
   --task <profile>             With "investigate" + --json: select a task-scoped
                                view (change-review | dependency-impact | response-recall)
   --compare                    With "investigation <id>": compare snapshot to current compose
-  --resource <resource-id>     With "investigations": list snapshots for one subject
-                               With "resolutions": list resolutions for one subject
-                               With "resolution": resource to record against (no saved investigation), or with --incident the subject of the new row (must already be a member subject)
-                               With "incidents": list groupings with a member Resolution on one subject
-                               With "recommendation": resource to record against, or with --incident the named member subject
+  --resource <resource-id>     With "investigation" / "investigations": list snapshots for one subject
+                               With "resolution" / "resolutions": list resolutions for one subject, or with "resolution" a resource to record against (no saved investigation), or with --incident the subject of the new row (must already be a member subject)
+                               With "incident" / "incidents": list groupings with a member Resolution on one subject
+                               With "recommendation": resource to record against, or with --incident the named member subject, or list recommendations for one subject
                                With "recommendations": list recommendations for one subject
-  --investigation <id>         With "resolution": investigation to record against
+  --investigation <id>         With "resolution": investigation to record against, or list resolutions for that investigation when no decision/action/outcome is named
                                With "resolutions": list resolutions for one investigation
-                               With "incidents": list groupings with a member Resolution recorded against that investigation (membership only; one exact id)
-                               With "recommendation": investigation to record against
+                               With "incident" / "incidents": list groupings with a member Resolution recorded against that investigation (membership only; one exact id)
+                               With "recommendation": investigation to record against, or list recommendations for that investigation when no action-key/proposal is named
                                With "recommendations": list recommendations for one investigation
   --incident <incident-id>     With "resolution": existing incident grouping to record
                                against (subject copied from members, or named with --resource; one exact id)
@@ -437,14 +436,16 @@ ${GLOBAL_DIR}`,
   investigation: `combie investigation / investigations — saved investigation snapshots
 
 Usage:
-  ${BINARY_NAME} investigations
-  ${BINARY_NAME} investigations --resource <resource-id>
+  ${BINARY_NAME} investigation
+  ${BINARY_NAME} investigation --resource <resource-id>
   ${BINARY_NAME} investigation <id>
   ${BINARY_NAME} investigation <id> --compare
+  ${BINARY_NAME} investigations
+  ${BINARY_NAME} investigations --resource <resource-id>
 
 Investigate options:
   --compare                    With "investigation <id>": compare snapshot to current compose
-  --resource <resource-id>     With "investigations": list snapshots for one subject
+  --resource <resource-id>     List snapshots for one subject
 
 ${READ_JSON}
 
@@ -452,6 +453,8 @@ Investigation history appears on investigate and investigation reopen
 when snapshots exist.
 
 Examples:
+  ${BINARY_NAME} investigation
+  ${BINARY_NAME} investigation --resource github:repository:1001
   ${BINARY_NAME} investigations
   ${BINARY_NAME} investigations --resource github:repository:1001
   ${BINARY_NAME} investigation inv:…
@@ -462,6 +465,8 @@ ${GLOBAL_DIR}`,
   resolution: `combie resolution / resolutions — explicit investigation resolution memory
 
 Usage:
+  ${BINARY_NAME} resolution
+  ${BINARY_NAME} resolution [--investigation|--resource|--evidence]
   ${BINARY_NAME} resolution <resolution-id>
   ${BINARY_NAME} resolution --investigation <id> (--decision|--action|--outcome) [...]
   ${BINARY_NAME} resolution --resource <resource-id> (--decision|--action|--outcome) [...]
@@ -472,9 +477,9 @@ Usage:
 Recording requires at least one of --decision, --action, or --outcome.
 
 Options:
-  --investigation <id>         With "resolution": investigation to record against
+  --investigation <id>         Investigation to record against, or list resolutions for that investigation when no decision/action/outcome is named
                                With "resolutions": list resolutions for one investigation
-  --resource <resource-id>     With "resolution": resource to record against (no saved investigation), or with --incident the subject of the new row (must already be a member subject)
+  --resource <resource-id>     Resource to record against when a decision/action/outcome is named (no saved investigation), or with --incident the subject of the new row (must already be a member subject); otherwise list resolutions for that subject
                                With "resolutions": list resolutions for one subject
   --incident <incident-id>     With "resolution": existing incident grouping to record
                                against (subject copied from members, or named with --resource; one exact id)
@@ -488,6 +493,8 @@ Resolution memory appears on investigate and investigation reopen
 when records exist, including the recorded text.
 
 Examples:
+  ${BINARY_NAME} resolution
+  ${BINARY_NAME} resolution --resource github:repository:1001
   ${BINARY_NAME} resolution --investigation inv:… --decision "Rollback" --action "Reverted deploy" --outcome "Errors dropped"
   ${BINARY_NAME} resolution --resource vercel:project:prj_abc --decision "Rollback"
   ${BINARY_NAME} resolution --incident inc:… --decision "Keep holding" --action "Held deploys"
@@ -502,6 +509,8 @@ ${GLOBAL_DIR}`,
   incident: `combie incident / incidents — explicit incident grouping of resolutions
 
 Usage:
+  ${BINARY_NAME} incident
+  ${BINARY_NAME} incident [--resource|--investigation]
   ${BINARY_NAME} incident --resolution <resolution-id> [--resolution ...] [--title <text>]
   ${BINARY_NAME} incident <id>
   ${BINARY_NAME} incident <id> --resolution <resolution-id>
@@ -522,12 +531,14 @@ Options:
   --recorded-at <iso>          With "incident <id>": replace recordedAt (title and members unchanged)
   --occurred-at <iso>          With "incident <id>": set occurredAt (recordedAt, title, and members unchanged)
   --clear-occurred-at           With "incident <id>": omit the stored occurredAt (recordedAt, title, and members unchanged)
-  --resource <resource-id>     With "incidents": list groupings with a member Resolution on one subject
-  --investigation <id>         With "incidents": list groupings with a member Resolution recorded against that investigation (membership only; one exact id)
+  --resource <resource-id>     With "incident" / "incidents": list groupings with a member Resolution on one subject
+  --investigation <id>         With "incident" / "incidents": list groupings with a member Resolution recorded against that investigation (membership only; one exact id)
 
 Incident memory appears on those same paths when groupings exist.
 
 Examples:
+  ${BINARY_NAME} incident
+  ${BINARY_NAME} incident --resource github:repository:1001
   ${BINARY_NAME} incident --resolution res:… --resolution res:… --title "API error spike"
   ${BINARY_NAME} incident inc:… --resolution res:…
   ${BINARY_NAME} incident inc:… --remove-resolution res:…
@@ -547,6 +558,8 @@ ${GLOBAL_DIR}`,
   "incident-link": `combie incident-link / incident-links — organizational links between incidents
 
 Usage:
+  ${BINARY_NAME} incident-link
+  ${BINARY_NAME} incident-link --incident <incident-id>
   ${BINARY_NAME} incident-link --incident <incident-id> --incident <incident-id> --reason <text>
   ${BINARY_NAME} incident-link <id>
   ${BINARY_NAME} incident-links [--incident <incident-id>]
@@ -557,6 +570,8 @@ Options:
   --reason <text>              With "incident-link": required organizational claim for the link
 
 Examples:
+  ${BINARY_NAME} incident-link
+  ${BINARY_NAME} incident-link --incident inc:…
   ${BINARY_NAME} incident-link --incident inc:… --incident inc:… --reason "Same failure mode"
   ${BINARY_NAME} incident-link ilink:…
   ${BINARY_NAME} incident-links
@@ -583,18 +598,26 @@ ${GLOBAL_DIR}`,
   recommendation: `combie structured response memory — recommendation, decision, action, outcome
 
 Usage:
-  ${BINARY_NAME} recommendation [--investigation|--resource|--incident] ...
+  ${BINARY_NAME} recommendation
+  ${BINARY_NAME} recommendation [--investigation|--resource|--incident]
+  ${BINARY_NAME} recommendation [--investigation|--resource|--incident] --action-key <token> --proposal <text> ...
   ${BINARY_NAME} recommendation <id>
   ${BINARY_NAME} recommendations [--investigation|--resource|--incident]
-  ${BINARY_NAME} decision --recommendation <id> ...
+  ${BINARY_NAME} decision
+  ${BINARY_NAME} decision --recommendation <id>
+  ${BINARY_NAME} decision --recommendation <id> --disposition <value> ...
   ${BINARY_NAME} decision <id>
-  ${BINARY_NAME} decisions --recommendation <id>
-  ${BINARY_NAME} action --decision <id> ...
+  ${BINARY_NAME} decisions [--recommendation <id>]
+  ${BINARY_NAME} action
+  ${BINARY_NAME} action --decision <id>
+  ${BINARY_NAME} action --decision <id> --action-key <token> --summary <text> ...
   ${BINARY_NAME} action <id>
-  ${BINARY_NAME} actions --decision <id>
-  ${BINARY_NAME} outcome --action <id> ...
+  ${BINARY_NAME} actions [--decision <id>]
+  ${BINARY_NAME} outcome
+  ${BINARY_NAME} outcome --action <id>
+  ${BINARY_NAME} outcome --action <id> --assessment <value> --summary <text> ...
   ${BINARY_NAME} outcome <id>
-  ${BINARY_NAME} outcomes --action <id>
+  ${BINARY_NAME} outcomes [--action <id>]
 
 Options:
   --resource <resource-id>     With "recommendation": resource to record against, or with --incident the named member subject
@@ -625,17 +648,22 @@ Options:
   --unit <unit>                With "outcome": measurement unit (atomic)
 
 Examples:
+  ${BINARY_NAME} recommendation
+  ${BINARY_NAME} recommendation --resource vercel:project:prj_abc
   ${BINARY_NAME} recommendation --resource vercel:project:prj_abc --action-key rollback-deployment --proposal "Rollback the latest deployment"
   ${BINARY_NAME} recommendation --investigation inv:… --action-key inspect-database --proposal "Inspect the primary"
   ${BINARY_NAME} recommendation --incident inc:… --resource github:repository:1001 --action-key hold-deploys --proposal "Hold deploys"
   ${BINARY_NAME} recommendations --resource vercel:project:prj_abc
   ${BINARY_NAME} recommendation rec:…
+  ${BINARY_NAME} decision
   ${BINARY_NAME} decision --recommendation rec:… --disposition approved
   ${BINARY_NAME} decisions --recommendation rec:…
   ${BINARY_NAME} decision dec:…
+  ${BINARY_NAME} action
   ${BINARY_NAME} action --decision dec:… --action-key rollback-deployment --summary "Rolled back dpl_abc"
   ${BINARY_NAME} actions --decision dec:…
   ${BINARY_NAME} action act:…
+  ${BINARY_NAME} outcome
   ${BINARY_NAME} outcome --action act:… --assessment positive --summary "Error rate returned toward baseline"
   ${BINARY_NAME} outcome --action act:… --assessment positive --summary "Error rate dropped" --metric error-rate --before 12.4 --after 1.1 --unit percent
   ${BINARY_NAME} outcomes --action act:…
@@ -695,19 +723,17 @@ See
   investigate <id>     Compose investigation context around a resource
 
 Remember
-  investigations       List saved investigation snapshots
-  investigation <id>   Reopen a saved snapshot
-  resolutions          List retained resolutions
-  resolution [id]      Record or show a resolution
-  incidents            List incident groupings
-  incident [id]        Record, show, or update an incident grouping
+  investigation [id]   List or reopen a saved snapshot
+  resolution [id]      List, record, or show a resolution
+  incident [id]        List, record, show, or update an incident grouping
 
 Agents
   agent                MCP setup for Claude, Codex, Cursor
   mcp                  Start the read-only MCP server
 
 Also: relationships, changes, history, related, context,
-      incident-link, precedents, recommendation, decision, action, outcome
+      investigations, resolutions, incidents, incident-link, precedents,
+      recommendation, decision, action, outcome
 
 More:  ${BINARY_NAME} help <command>
        ${BINARY_NAME} help --all

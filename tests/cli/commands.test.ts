@@ -181,7 +181,8 @@ describe("CLI commands", () => {
     expect(result.stdout).not.toContain("--refresh");
   });
 
-  test("incident --investigation stays usage (Sprint 078 leftover frozen)", async () => {
+  test("incident --investigation twice still does not group snapshots as members", async () => {
+    await capture(() => main(["init", "--dir", dir]));
     const result = await capture(() =>
       main([
         "incident",
@@ -194,7 +195,7 @@ describe("CLI commands", () => {
       ]),
     );
     expect(result.code).toBe(1);
-    expect(result.stderr).toContain("do not pass --investigation");
+    expect(result.stderr).toContain("--investigation takes one exact id");
     expect(result.stdout).not.toContain("Recorded incident");
   });
 
@@ -845,16 +846,23 @@ describe("CLI commands", () => {
     expect(help.code).toBe(0);
     expect(help.stdout).toContain("--resource <resource-id>");
     expect(help.stdout).toContain(
-      'With "investigations": list snapshots for one subject',
+      'With "investigation" / "investigations": list snapshots for one subject',
     );
   });
 
-  test("investigation requires an id and help lists --compare", async () => {
-    const usage = await capture(() =>
-      main(["investigation", "--dir", dir]),
+  test("investigation with no id lists snapshots and --compare still needs an id", async () => {
+    await capture(() => main(["init", "--dir", dir]));
+    const listed = await capture(() => main(["investigation", "--dir", dir]));
+    expect(listed.code).toBe(0);
+    expect(listed.stdout).toContain("No investigation snapshots saved yet.");
+
+    const compareNoId = await capture(() =>
+      main(["investigation", "--compare", "--dir", dir]),
     );
-    expect(usage.code).toBe(1);
-    expect(usage.stderr).toContain("investigation <investigation-id> [--compare]");
+    expect(compareNoId.code).toBe(1);
+    expect(compareNoId.stderr).toContain(
+      "investigation <investigation-id> [--compare]",
+    );
 
     const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);
@@ -3184,7 +3192,9 @@ describe("CLI commands", () => {
       ]),
     );
     expect(groupingSnapshots.code).toBe(1);
-    expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
+    expect(groupingSnapshots.stderr).toContain(
+      "--investigation takes one exact id",
+    );
 
     const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain(
@@ -3412,7 +3422,9 @@ describe("CLI commands", () => {
       ]),
     );
     expect(groupingSnapshots.code).toBe(1);
-    expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
+    expect(groupingSnapshots.stderr).toContain(
+      "--investigation takes one exact id",
+    );
 
     const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain('incident inc:… --title "');
@@ -3625,7 +3637,9 @@ describe("CLI commands", () => {
       ]),
     );
     expect(groupingSnapshots.code).toBe(1);
-    expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
+    expect(groupingSnapshots.stderr).toContain(
+      "--investigation takes one exact id",
+    );
 
     const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain("incident inc:… --clear-title");
@@ -3844,7 +3858,9 @@ describe("CLI commands", () => {
       ]),
     );
     expect(groupingSnapshots.code).toBe(1);
-    expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
+    expect(groupingSnapshots.stderr).toContain(
+      "--investigation takes one exact id",
+    );
 
     const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain("incident inc:… --recorded-at");
@@ -4084,7 +4100,9 @@ describe("CLI commands", () => {
       ]),
     );
     expect(groupingSnapshots.code).toBe(1);
-    expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
+    expect(groupingSnapshots.stderr).toContain(
+      "--investigation takes one exact id",
+    );
 
     const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain("incident inc:… --occurred-at");
@@ -4381,7 +4399,9 @@ describe("CLI commands", () => {
       ]),
     );
     expect(groupingSnapshots.code).toBe(1);
-    expect(groupingSnapshots.stderr).toContain("do not pass --investigation");
+    expect(groupingSnapshots.stderr).toContain(
+      "--investigation takes one exact id",
+    );
 
     const help = await capture(() => main(["help", "--all"]));
     expect(help.stdout).toContain("--clear-occurred-at");
@@ -4564,7 +4584,7 @@ describe("CLI commands", () => {
       ]),
     );
     expect(leftover.code).toBe(1);
-    expect(leftover.stderr).toContain("do not pass --investigation");
+    expect(leftover.stderr).toContain("--investigation takes one exact id");
 
     const help = await capture(() => main(["help", "--all"]));
     expect(help.code).toBe(0);

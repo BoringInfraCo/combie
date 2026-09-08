@@ -47,12 +47,13 @@ describe("CLI grouped help", () => {
       expect(result.stdout).not.toContain(
         "LAST SYNC is last successful sync",
       );
+      expect(result.stdout).toContain("investigation [id]");
+      expect(result.stdout).toContain("List or reopen");
+      expect(result.stdout).toContain("resolution [id]");
+      expect(result.stdout).toContain("incident [id]");
       expect(result.stdout).toContain("investigations");
       expect(result.stdout).toContain("resolutions");
       expect(result.stdout).toContain("incidents");
-      expect(result.stdout).toContain("investigation <id>");
-      expect(result.stdout).not.toContain("investigation [id]");
-      expect(result.stdout).not.toContain("List or reopen");
     }
   });
 

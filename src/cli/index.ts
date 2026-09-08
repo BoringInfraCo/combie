@@ -256,6 +256,260 @@ function optionalFlagText(
   return optionalFlagId(value);
 }
 
+function runInvestigationList(
+  baseDir: string,
+  flags: Record<string, string | boolean>,
+): number {
+  const resource =
+    typeof flags.resource === "string" ? flags.resource.trim() : undefined;
+  if (flags.resource !== undefined && !resource) {
+    console.error(
+      `--resource requires a resource id.\nUsage: ${BINARY_NAME} investigations [--resource <resource-id>]\nExample: ${BINARY_NAME} investigations --resource github:repository:1001`,
+    );
+    return 1;
+  }
+  const records = listInvestigations(
+    baseDir,
+    resource !== undefined ? { subjectResourceId: resource } : undefined,
+  );
+  if (flags.json === true) {
+    console.log(
+      JSON.stringify(safeJson(projectListInvestigations(records)), null, 2),
+    );
+  } else {
+    console.log(formatInvestigationList(records, resource));
+  }
+  return 0;
+}
+
+function runResolutionList(
+  baseDir: string,
+  flags: Record<string, string | boolean>,
+  repeated: Record<string, string[]>,
+): number {
+  const usage = `Usage: ${BINARY_NAME} resolutions [--investigation <investigation-id>] [--resource <resource-id>] [--evidence <evidence-id>]`;
+  const investigation = optionalFlagId(flags.investigation);
+  if (investigation === "missing") {
+    console.error(`--investigation requires an investigation id.\n${usage}`);
+    return 1;
+  }
+  const resource =
+    typeof flags.resource === "string" ? flags.resource.trim() : undefined;
+  if (flags.resource !== undefined && !resource) {
+    console.error(`--resource requires a resource id.\n${usage}`);
+    return 1;
+  }
+  const evidence =
+    typeof flags.evidence === "string" ? flags.evidence.trim() : undefined;
+  if (flags.evidence !== undefined && !evidence) {
+    console.error(`--evidence requires an evidence id.\n${usage}`);
+    return 1;
+  }
+  if ((repeated.evidence ?? []).length > 0) {
+    console.error(`--evidence takes one exact id on the resolutions list.\n${usage}`);
+    return 1;
+  }
+  const filter = {
+    ...(investigation ? { investigationId: investigation } : {}),
+    ...(resource !== undefined ? { subjectResourceId: resource } : {}),
+    ...(evidence !== undefined ? { evidenceId: evidence } : {}),
+  };
+  const records = listResolutions(baseDir, filter);
+  console.log(formatResolutionList(records, filter));
+  return 0;
+}
+
+function runIncidentList(
+  baseDir: string,
+  flags: Record<string, string | boolean>,
+  repeated: Record<string, string[]>,
+): number {
+  const usage = `Usage: ${BINARY_NAME} incidents [--resolution <resolution-id>] [--resource <resource-id>] [--investigation <investigation-id>]`;
+  const investigationFlag = optionalFlagId(flags.investigation);
+  if (investigationFlag === "missing") {
+    console.error(`--investigation requires an investigation id.\n${usage}`);
+    return 1;
+  }
+  if ((repeated.investigation ?? []).length > 0) {
+    console.error(`--investigation takes one exact id on the incidents list.\n${usage}`);
+    return 1;
+  }
+  const resolution =
+    typeof flags.resolution === "string" ? flags.resolution.trim() : undefined;
+  if (flags.resolution !== undefined && !resolution) {
+    console.error(`--resolution requires a resolution id.\n${usage}`);
+    return 1;
+  }
+  if ((repeated.resolution ?? []).length > 0) {
+    console.error(`--resolution takes one exact id on the incidents list.\n${usage}`);
+    return 1;
+  }
+  const resource =
+    typeof flags.resource === "string" ? flags.resource.trim() : undefined;
+  if (flags.resource !== undefined && !resource) {
+    console.error(`--resource requires a resource id.\n${usage}`);
+    return 1;
+  }
+  const filter =
+    resolution !== undefined ||
+    resource !== undefined ||
+    investigationFlag !== undefined
+      ? {
+          ...(resolution !== undefined ? { resolutionId: resolution } : {}),
+          ...(resource !== undefined ? { subjectResourceId: resource } : {}),
+          ...(investigationFlag !== undefined
+            ? { investigationId: investigationFlag }
+            : {}),
+        }
+      : undefined;
+  const records = filter
+    ? listIncidentsFiltered(baseDir, filter)
+    : listIncidents(baseDir);
+  console.log(formatIncidentList(records, filter));
+  return 0;
+}
+
+function runRecommendationList(
+  baseDir: string,
+  flags: Record<string, string | boolean>,
+  repeated: Record<string, string[]>,
+): number {
+  const usage = `Usage: ${BINARY_NAME} recommendations [--resource <resource-id>] [--investigation <investigation-id>] [--incident <incident-id>]`;
+  const investigationFlag = optionalFlagId(flags.investigation);
+  if (investigationFlag === "missing") {
+    console.error(`--investigation requires an investigation id.\n${usage}`);
+    return 1;
+  }
+  if ((repeated.investigation ?? []).length > 0) {
+    console.error(
+      `--investigation takes one exact id on the recommendations list.\n${usage}`,
+    );
+    return 1;
+  }
+  const resourceFlag = optionalFlagId(flags.resource);
+  if (resourceFlag === "missing") {
+    console.error(`--resource requires a resource id.\n${usage}`);
+    return 1;
+  }
+  if ((repeated.resource ?? []).length > 0) {
+    console.error(
+      `--resource takes one exact id on the recommendations list.\n${usage}`,
+    );
+    return 1;
+  }
+  const incidentFlag = optionalFlagId(flags.incident);
+  if (incidentFlag === "missing") {
+    console.error(`--incident requires an incident id.\n${usage}`);
+    return 1;
+  }
+  if ((repeated.incident ?? []).length > 0) {
+    console.error(
+      `--incident takes one exact id on the recommendations list.\n${usage}`,
+    );
+    return 1;
+  }
+  const filter = {
+    ...(resourceFlag ? { subjectResourceId: resourceFlag } : {}),
+    ...(investigationFlag ? { investigationId: investigationFlag } : {}),
+    ...(incidentFlag ? { incidentId: incidentFlag } : {}),
+  };
+  const listFilter =
+    resourceFlag || investigationFlag || incidentFlag ? filter : undefined;
+  const records = listRecommendations(baseDir, listFilter);
+  console.log(formatRecommendationList(records, listFilter));
+  return 0;
+}
+
+function runDecisionList(
+  baseDir: string,
+  flags: Record<string, string | boolean>,
+  repeated: Record<string, string[]>,
+): number {
+  const usage = `Usage: ${BINARY_NAME} decisions [--recommendation <recommendation-id>]`;
+  const recommendationFlag = optionalFlagId(flags.recommendation);
+  if (recommendationFlag === "missing") {
+    console.error(`--recommendation requires a recommendation id.\n${usage}`);
+    return 1;
+  }
+  if ((repeated.recommendation ?? []).length > 0) {
+    console.error(
+      `--recommendation takes one exact id on the decisions list.\n${usage}`,
+    );
+    return 1;
+  }
+  const filter = recommendationFlag
+    ? { recommendationId: recommendationFlag }
+    : undefined;
+  const records = listDecisions(baseDir, filter);
+  console.log(formatDecisionList(records, filter));
+  return 0;
+}
+
+function runActionList(
+  baseDir: string,
+  flags: Record<string, string | boolean>,
+  repeated: Record<string, string[]>,
+): number {
+  const usage = `Usage: ${BINARY_NAME} actions [--decision <decision-id>]`;
+  const decisionFlag = optionalFlagId(flags.decision);
+  if (decisionFlag === "missing") {
+    console.error(`--decision requires a decision id.\n${usage}`);
+    return 1;
+  }
+  if ((repeated.decision ?? []).length > 0) {
+    console.error(`--decision takes one exact id on the actions list.\n${usage}`);
+    return 1;
+  }
+  const filter = decisionFlag ? { decisionId: decisionFlag } : undefined;
+  const records = listActions(baseDir, filter);
+  console.log(formatActionList(records, filter));
+  return 0;
+}
+
+function runOutcomeList(
+  baseDir: string,
+  flags: Record<string, string | boolean>,
+  repeated: Record<string, string[]>,
+): number {
+  const usage = `Usage: ${BINARY_NAME} outcomes [--action <action-id>]`;
+  const actionFlag = optionalFlagId(flags.action);
+  if (actionFlag === "missing") {
+    console.error(`--action requires an action id.\n${usage}`);
+    return 1;
+  }
+  if ((repeated.action ?? []).length > 0) {
+    console.error(`--action takes one exact id on the outcomes list.\n${usage}`);
+    return 1;
+  }
+  const filter = actionFlag ? { actionId: actionFlag } : undefined;
+  const records = listOutcomes(baseDir, filter);
+  console.log(formatOutcomeList(records, filter));
+  return 0;
+}
+
+function runIncidentLinkList(
+  baseDir: string,
+  flags: Record<string, string | boolean>,
+  repeated: Record<string, string[]>,
+): number {
+  const usage = `Usage: ${BINARY_NAME} incident-links [--incident <incident-id>]`;
+  const incidentFlag = optionalFlagId(flags.incident);
+  if (incidentFlag === "missing") {
+    console.error(`--incident requires an incident id.\n${usage}`);
+    return 1;
+  }
+  if ((repeated.incident ?? []).length > 0) {
+    console.error(
+      `--incident takes one exact id on the incident-links list.\n${usage}`,
+    );
+    return 1;
+  }
+  const filter = incidentFlag ? { incidentId: incidentFlag } : undefined;
+  const records = listIncidentLinks(baseDir, filter);
+  console.log(formatIncidentLinks(records, filter));
+  return 0;
+}
+
 async function main(argv: string[]): Promise<number> {
   const { command, positionals, flags, repeated } = parseArgs(argv);
 
@@ -619,34 +873,18 @@ async function main(argv: string[]): Promise<number> {
         return 0;
       }
       case "investigations": {
-        const resource =
-          typeof flags.resource === "string" ? flags.resource.trim() : undefined;
-        if (flags.resource !== undefined && !resource) {
-          console.error(
-            `--resource requires a resource id.\nUsage: ${BINARY_NAME} investigations [--resource <resource-id>]\nExample: ${BINARY_NAME} investigations --resource github:repository:1001`,
-          );
-          return 1;
-        }
-        const records = listInvestigations(
-          baseDir,
-          resource !== undefined ? { subjectResourceId: resource } : undefined,
-        );
-        if (flags.json === true) {
-          console.log(
-            JSON.stringify(safeJson(projectListInvestigations(records)), null, 2),
-          );
-        } else {
-          console.log(formatInvestigationList(records, resource));
-        }
-        return 0;
+        return runInvestigationList(baseDir, flags);
       }
       case "investigation": {
         const investigationId = positionals[0];
         if (!investigationId) {
-          console.error(
-            `Usage: ${BINARY_NAME} investigation <investigation-id> [--compare]\nList ids: ${BINARY_NAME} investigations`,
-          );
-          return 1;
+          if (flags.compare === true) {
+            console.error(
+              `Usage: ${BINARY_NAME} investigation <investigation-id> [--compare]\nList ids: ${BINARY_NAME} investigation`,
+            );
+            return 1;
+          }
+          return runInvestigationList(baseDir, flags);
         }
         if (flags.json === true && flags.compare === true) {
           console.error(
@@ -751,20 +989,35 @@ async function main(argv: string[]): Promise<number> {
           );
           return 1;
         }
-        if (
-          investigationFlag &&
-          (resourceFlag !== undefined || incidentFlag !== undefined)
-        ) {
-          console.error(
-            `Use exactly one of --investigation, --resource, or --incident.\nUsage: ${BINARY_NAME} resolution --investigation <investigation-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --resource <resource-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --incident <incident-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --incident <incident-id> --resource <resource-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]`,
-          );
-          return 1;
+        const hasContent = Boolean(decision || action || outcome);
+        const wantsRecord = hasContent || incidentFlag !== undefined;
+        if (positionals[0] && !wantsRecord) {
+          if (investigationFlag || resourceFlag) {
+            console.error(
+              `Usage: ${BINARY_NAME} resolution --investigation <investigation-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --resource <resource-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --incident <incident-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nShow: ${BINARY_NAME} resolution <resolution-id>`,
+            );
+            return 1;
+          }
+          if (evidenceParts.length > 0) {
+            console.error(
+              `Recording a resolution requires --investigation, --resource, or --incident.\nUsage: ${BINARY_NAME} resolution --investigation <investigation-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --resource <resource-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --incident <incident-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]`,
+            );
+            return 1;
+          }
+          const record = getResolution(baseDir, positionals[0]);
+          console.log(formatResolution(record));
+          return 0;
         }
-        const hasAnchor =
-          investigationFlag !== undefined ||
-          resourceFlag !== undefined ||
-          incidentFlag !== undefined;
-        if (hasAnchor) {
+        if (wantsRecord) {
+          if (
+            investigationFlag &&
+            (resourceFlag !== undefined || incidentFlag !== undefined)
+          ) {
+            console.error(
+              `Use exactly one of --investigation, --resource, or --incident.\nUsage: ${BINARY_NAME} resolution --investigation <investigation-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --resource <resource-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --incident <incident-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --incident <incident-id> --resource <resource-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]`,
+            );
+            return 1;
+          }
           if (positionals[0]) {
             console.error(
               `Usage: ${BINARY_NAME} resolution --investigation <investigation-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --resource <resource-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --incident <incident-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nShow: ${BINARY_NAME} resolution <resolution-id>`,
@@ -786,75 +1039,12 @@ async function main(argv: string[]): Promise<number> {
           );
           return 0;
         }
-        const resolutionId = positionals[0];
-        if (!resolutionId) {
-          console.error(
-            `Usage: ${BINARY_NAME} resolution --investigation <investigation-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --resource <resource-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --incident <incident-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nShow: ${BINARY_NAME} resolution <resolution-id>\nList ids: ${BINARY_NAME} resolutions`,
-          );
-          return 1;
-        }
-        if (decision || action || outcome || evidenceParts.length > 0) {
-          console.error(
-            `Recording a resolution requires --investigation, --resource, or --incident.\nUsage: ${BINARY_NAME} resolution --investigation <investigation-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --resource <resource-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]\nUsage: ${BINARY_NAME} resolution --incident <incident-id> --decision <text> [--action <text>] [--outcome <text>] [--evidence <id>]`,
-          );
-          return 1;
-        }
-        const record = getResolution(baseDir, resolutionId);
-        console.log(formatResolution(record));
-        return 0;
+        return runResolutionList(baseDir, flags, repeated);
       }
       case "resolutions": {
-        const investigation =
-          optionalFlagId(flags.investigation);
-        if (investigation === "missing") {
-          console.error(
-            `--investigation requires an investigation id.\nUsage: ${BINARY_NAME} resolutions [--investigation <investigation-id>] [--resource <resource-id>] [--evidence <evidence-id>]`,
-          );
-          return 1;
-        }
-        const resource =
-          typeof flags.resource === "string" ? flags.resource.trim() : undefined;
-        if (flags.resource !== undefined && !resource) {
-          console.error(
-            `--resource requires a resource id.\nUsage: ${BINARY_NAME} resolutions [--investigation <investigation-id>] [--resource <resource-id>] [--evidence <evidence-id>]`,
-          );
-          return 1;
-        }
-        const evidence =
-          typeof flags.evidence === "string" ? flags.evidence.trim() : undefined;
-        if (flags.evidence !== undefined && !evidence) {
-          console.error(
-            `--evidence requires an evidence id.\nUsage: ${BINARY_NAME} resolutions [--investigation <investigation-id>] [--resource <resource-id>] [--evidence <evidence-id>]`,
-          );
-          return 1;
-        }
-        if ((repeated.evidence ?? []).length > 0) {
-          console.error(
-            `--evidence takes one exact id on the resolutions list.\nUsage: ${BINARY_NAME} resolutions [--investigation <investigation-id>] [--resource <resource-id>] [--evidence <evidence-id>]`,
-          );
-          return 1;
-        }
-        const records = listResolutions(baseDir, {
-          ...(investigation ? { investigationId: investigation } : {}),
-          ...(resource !== undefined ? { subjectResourceId: resource } : {}),
-          ...(evidence !== undefined ? { evidenceId: evidence } : {}),
-        });
-        console.log(
-          formatResolutionList(records, {
-            ...(investigation ? { investigationId: investigation } : {}),
-            ...(resource !== undefined ? { subjectResourceId: resource } : {}),
-            ...(evidence !== undefined ? { evidenceId: evidence } : {}),
-          }),
-        );
-        return 0;
+        return runResolutionList(baseDir, flags, repeated);
       }
       case "incident": {
-        if (flags.investigation !== undefined || flags.resource !== undefined) {
-          console.error(
-            `Recording an incident groups existing --resolution ids; do not pass --investigation or --resource.\nUsage: ${BINARY_NAME} incident --resolution <resolution-id> --resolution <resolution-id> [--title <text>]\nShow: ${BINARY_NAME} incident <incident-id>`,
-          );
-          return 1;
-        }
         const resolutionParts = [
           ...(repeated.resolution ?? []),
           ...(typeof flags.resolution === "string" ? [flags.resolution] : []),
@@ -1079,6 +1269,12 @@ async function main(argv: string[]): Promise<number> {
           return 0;
         }
         if (resolutionParts.length > 0) {
+          if (flags.investigation !== undefined || flags.resource !== undefined) {
+            console.error(
+              `Recording an incident groups existing --resolution ids; do not pass --investigation or --resource.\nUsage: ${BINARY_NAME} incident --resolution <resolution-id> --resolution <resolution-id> [--title <text>]\nShow: ${BINARY_NAME} incident <incident-id>`,
+            );
+            return 1;
+          }
           if (positionals[0]) {
             if (title) {
               console.error(
@@ -1125,11 +1321,19 @@ async function main(argv: string[]): Promise<number> {
             console.error(
               `--clear-title requires an existing incident id.\nUsage: ${BINARY_NAME} incident <incident-id> --clear-title`,
             );
-          } else {
+          } else if (title) {
             console.error(
-              `Usage: ${BINARY_NAME} incident --resolution <resolution-id> --resolution <resolution-id> [--title <text>]\nShow: ${BINARY_NAME} incident <incident-id>\nList ids: ${BINARY_NAME} incidents`,
+              `Usage: ${BINARY_NAME} incident --resolution <resolution-id> --resolution <resolution-id> [--title <text>]\nUsage: ${BINARY_NAME} incident <incident-id> --title <text>`,
             );
+          } else {
+            return runIncidentList(baseDir, flags, repeated);
           }
+          return 1;
+        }
+        if (flags.investigation !== undefined || flags.resource !== undefined) {
+          console.error(
+            `Recording an incident groups existing --resolution ids; do not pass --investigation or --resource.\nUsage: ${BINARY_NAME} incident --resolution <resolution-id> --resolution <resolution-id> [--title <text>]\nShow: ${BINARY_NAME} incident <incident-id>`,
+          );
           return 1;
         }
         if (occurredAt) {
@@ -1182,62 +1386,7 @@ async function main(argv: string[]): Promise<number> {
         return 0;
       }
       case "incidents": {
-        const investigationFlag = optionalFlagId(flags.investigation);
-        if (investigationFlag === "missing") {
-          console.error(
-            `--investigation requires an investigation id.\nUsage: ${BINARY_NAME} incidents [--resolution <resolution-id>] [--resource <resource-id>] [--investigation <investigation-id>]`,
-          );
-          return 1;
-        }
-        if ((repeated.investigation ?? []).length > 0) {
-          console.error(
-            `--investigation takes one exact id on the incidents list.\nUsage: ${BINARY_NAME} incidents [--resolution <resolution-id>] [--resource <resource-id>] [--investigation <investigation-id>]`,
-          );
-          return 1;
-        }
-        const resolution =
-          typeof flags.resolution === "string"
-            ? flags.resolution.trim()
-            : undefined;
-        if (flags.resolution !== undefined && !resolution) {
-          console.error(
-            `--resolution requires a resolution id.\nUsage: ${BINARY_NAME} incidents [--resolution <resolution-id>] [--resource <resource-id>] [--investigation <investigation-id>]`,
-          );
-          return 1;
-        }
-        if ((repeated.resolution ?? []).length > 0) {
-          console.error(
-            `--resolution takes one exact id on the incidents list.\nUsage: ${BINARY_NAME} incidents [--resolution <resolution-id>] [--resource <resource-id>] [--investigation <investigation-id>]`,
-          );
-          return 1;
-        }
-        const resource =
-          typeof flags.resource === "string" ? flags.resource.trim() : undefined;
-        if (flags.resource !== undefined && !resource) {
-          console.error(
-            `--resource requires a resource id.\nUsage: ${BINARY_NAME} incidents [--resolution <resolution-id>] [--resource <resource-id>] [--investigation <investigation-id>]`,
-          );
-          return 1;
-        }
-        const filter =
-          resolution !== undefined ||
-          resource !== undefined ||
-          investigationFlag !== undefined
-            ? {
-                ...(resolution !== undefined ? { resolutionId: resolution } : {}),
-                ...(resource !== undefined
-                  ? { subjectResourceId: resource }
-                  : {}),
-                ...(investigationFlag !== undefined
-                  ? { investigationId: investigationFlag }
-                  : {}),
-              }
-            : undefined;
-        const records = filter
-          ? listIncidentsFiltered(baseDir, filter)
-          : listIncidents(baseDir);
-        console.log(formatIncidentList(records, filter));
-        return 0;
+        return runIncidentList(baseDir, flags, repeated);
       }
       case "recommendation": {
         const usage =
@@ -1298,17 +1447,31 @@ async function main(argv: string[]): Promise<number> {
           investigationFlag !== undefined ||
           resourceFlag !== undefined ||
           incidentFlag !== undefined;
-        if (hasAnchor) {
-          if (positionals[0]) {
+        const hasRecordIntent = Boolean(
+          actionKey || proposal || rationale || evidenceParts.length > 0,
+        );
+        if (positionals[0]) {
+          if (hasAnchor || hasRecordIntent) {
             console.error(`${usage}\nShow: ${BINARY_NAME} recommendation <recommendation-id>`);
             return 1;
           }
+          const record = getRecommendation(baseDir, positionals[0]);
+          console.log(formatRecommendation(record));
+          return 0;
+        }
+        if (hasRecordIntent) {
           if (!actionKey) {
             console.error(`--action-key requires a token.\n${usage}`);
             return 1;
           }
           if (!proposal) {
             console.error(`--proposal requires text.\n${usage}`);
+            return 1;
+          }
+          if (!hasAnchor) {
+            console.error(
+              `Recording a recommendation requires --investigation, --resource, or --incident.\n${usage}`,
+            );
             return 1;
           }
           const recorded = recordRecommendation({
@@ -1324,68 +1487,10 @@ async function main(argv: string[]): Promise<number> {
           console.log(formatRecommendationConfirmation(recorded));
           return 0;
         }
-        const recommendationId = positionals[0];
-        if (!recommendationId) {
-          console.error(
-            `${usage}\nShow: ${BINARY_NAME} recommendation <recommendation-id>\nList ids: ${BINARY_NAME} recommendations`,
-          );
-          return 1;
-        }
-        if (actionKey || proposal || rationale || evidenceParts.length > 0) {
-          console.error(
-            `Recording a recommendation requires --investigation, --resource, or --incident.\n${usage}`,
-          );
-          return 1;
-        }
-        const record = getRecommendation(baseDir, recommendationId);
-        console.log(formatRecommendation(record));
-        return 0;
+        return runRecommendationList(baseDir, flags, repeated);
       }
       case "recommendations": {
-        const usage = `Usage: ${BINARY_NAME} recommendations [--resource <resource-id>] [--investigation <investigation-id>] [--incident <incident-id>]`;
-        const investigationFlag = optionalFlagId(flags.investigation);
-        if (investigationFlag === "missing") {
-          console.error(`--investigation requires an investigation id.\n${usage}`);
-          return 1;
-        }
-        if ((repeated.investigation ?? []).length > 0) {
-          console.error(
-            `--investigation takes one exact id on the recommendations list.\n${usage}`,
-          );
-          return 1;
-        }
-        const resourceFlag = optionalFlagId(flags.resource);
-        if (resourceFlag === "missing") {
-          console.error(`--resource requires a resource id.\n${usage}`);
-          return 1;
-        }
-        if ((repeated.resource ?? []).length > 0) {
-          console.error(
-            `--resource takes one exact id on the recommendations list.\n${usage}`,
-          );
-          return 1;
-        }
-        const incidentFlag = optionalFlagId(flags.incident);
-        if (incidentFlag === "missing") {
-          console.error(`--incident requires an incident id.\n${usage}`);
-          return 1;
-        }
-        if ((repeated.incident ?? []).length > 0) {
-          console.error(
-            `--incident takes one exact id on the recommendations list.\n${usage}`,
-          );
-          return 1;
-        }
-        const filter = {
-          ...(resourceFlag ? { subjectResourceId: resourceFlag } : {}),
-          ...(investigationFlag ? { investigationId: investigationFlag } : {}),
-          ...(incidentFlag ? { incidentId: incidentFlag } : {}),
-        };
-        const listFilter =
-          resourceFlag || investigationFlag || incidentFlag ? filter : undefined;
-        const records = listRecommendations(baseDir, listFilter);
-        console.log(formatRecommendationList(records, listFilter));
-        return 0;
+        return runRecommendationList(baseDir, flags, repeated);
       }
       case "decision": {
         const usage = `Usage: ${BINARY_NAME} decision --recommendation <recommendation-id> --disposition approved|rejected|deferred|modified [--note <text>]`;
@@ -1408,9 +1513,22 @@ async function main(argv: string[]): Promise<number> {
           console.error(`--note requires text.\n${usage}`);
           return 1;
         }
-        if (recommendationFlag && disposition) {
-          if (positionals[0]) {
-            console.error(`${usage}\nShow: ${BINARY_NAME} decision <decision-id>`);
+        if (positionals[0]) {
+          if (recommendationFlag || disposition || note) {
+            console.error(
+              `Recording a decision requires --recommendation and --disposition.\n${usage}`,
+            );
+            return 1;
+          }
+          const record = getDecision(baseDir, positionals[0]);
+          console.log(formatDecision(record));
+          return 0;
+        }
+        if (disposition || note) {
+          if (!(recommendationFlag && disposition)) {
+            console.error(
+              `Recording a decision requires --recommendation and --disposition.\n${usage}`,
+            );
             return 1;
           }
           const recorded = recordDecision({
@@ -1422,42 +1540,10 @@ async function main(argv: string[]): Promise<number> {
           console.log(formatDecisionConfirmation(recorded));
           return 0;
         }
-        const decisionId = positionals[0];
-        if (!decisionId) {
-          console.error(
-            `${usage}\nShow: ${BINARY_NAME} decision <decision-id>\nList ids: ${BINARY_NAME} decisions`,
-          );
-          return 1;
-        }
-        if (recommendationFlag || disposition || note) {
-          console.error(
-            `Recording a decision requires --recommendation and --disposition.\n${usage}`,
-          );
-          return 1;
-        }
-        const record = getDecision(baseDir, decisionId);
-        console.log(formatDecision(record));
-        return 0;
+        return runDecisionList(baseDir, flags, repeated);
       }
       case "decisions": {
-        const usage = `Usage: ${BINARY_NAME} decisions [--recommendation <recommendation-id>]`;
-        const recommendationFlag = optionalFlagId(flags.recommendation);
-        if (recommendationFlag === "missing") {
-          console.error(`--recommendation requires a recommendation id.\n${usage}`);
-          return 1;
-        }
-        if ((repeated.recommendation ?? []).length > 0) {
-          console.error(
-            `--recommendation takes one exact id on the decisions list.\n${usage}`,
-          );
-          return 1;
-        }
-        const filter = recommendationFlag
-          ? { recommendationId: recommendationFlag }
-          : undefined;
-        const records = listDecisions(baseDir, filter);
-        console.log(formatDecisionList(records, filter));
-        return 0;
+        return runDecisionList(baseDir, flags, repeated);
       }
       case "action": {
         const usage = `Usage: ${BINARY_NAME} action --decision <decision-id> --action-key <token> --summary <text> [--performed-at <iso>]`;
@@ -1485,9 +1571,22 @@ async function main(argv: string[]): Promise<number> {
           console.error(`--performed-at requires an ISO timestamp.\n${usage}`);
           return 1;
         }
-        if (decisionFlag && actionKey && summary) {
-          if (positionals[0]) {
-            console.error(`${usage}\nShow: ${BINARY_NAME} action <action-id>`);
+        if (positionals[0]) {
+          if (decisionFlag || actionKey || summary || performedAt) {
+            console.error(
+              `Recording an action requires --decision, --action-key, and --summary.\n${usage}`,
+            );
+            return 1;
+          }
+          const record = getAction(baseDir, positionals[0]);
+          console.log(formatAction(record));
+          return 0;
+        }
+        if (actionKey || summary || performedAt) {
+          if (!(decisionFlag && actionKey && summary)) {
+            console.error(
+              `Recording an action requires --decision, --action-key, and --summary.\n${usage}`,
+            );
             return 1;
           }
           const recorded = recordAction({
@@ -1500,38 +1599,10 @@ async function main(argv: string[]): Promise<number> {
           console.log(formatActionConfirmation(recorded));
           return 0;
         }
-        const actionId = positionals[0];
-        if (!actionId) {
-          console.error(
-            `${usage}\nShow: ${BINARY_NAME} action <action-id>\nList ids: ${BINARY_NAME} actions`,
-          );
-          return 1;
-        }
-        if (decisionFlag || actionKey || summary || performedAt) {
-          console.error(
-            `Recording an action requires --decision, --action-key, and --summary.\n${usage}`,
-          );
-          return 1;
-        }
-        const record = getAction(baseDir, actionId);
-        console.log(formatAction(record));
-        return 0;
+        return runActionList(baseDir, flags, repeated);
       }
       case "actions": {
-        const usage = `Usage: ${BINARY_NAME} actions [--decision <decision-id>]`;
-        const decisionFlag = optionalFlagId(flags.decision);
-        if (decisionFlag === "missing") {
-          console.error(`--decision requires a decision id.\n${usage}`);
-          return 1;
-        }
-        if ((repeated.decision ?? []).length > 0) {
-          console.error(`--decision takes one exact id on the actions list.\n${usage}`);
-          return 1;
-        }
-        const filter = decisionFlag ? { decisionId: decisionFlag } : undefined;
-        const records = listActions(baseDir, filter);
-        console.log(formatActionList(records, filter));
-        return 0;
+        return runActionList(baseDir, flags, repeated);
       }
       case "outcome": {
         const usage =
@@ -1590,9 +1661,29 @@ async function main(argv: string[]): Promise<number> {
           );
           return 1;
         }
-        if (actionFlag && assessment && summary) {
-          if (positionals[0]) {
-            console.error(`${usage}\nShow: ${BINARY_NAME} outcome <outcome-id>`);
+        const hasRecordIntent = Boolean(
+          assessment ||
+            summary ||
+            observedAt ||
+            evidenceParts.length > 0 ||
+            anyMeasurement,
+        );
+        if (positionals[0]) {
+          if (actionFlag || hasRecordIntent) {
+            console.error(
+              `Recording an outcome requires --action, --assessment, and --summary.\n${usage}`,
+            );
+            return 1;
+          }
+          const record = getOutcome(baseDir, positionals[0]);
+          console.log(formatOutcome(record));
+          return 0;
+        }
+        if (hasRecordIntent) {
+          if (!(actionFlag && assessment && summary)) {
+            console.error(
+              `Recording an outcome requires --action, --assessment, and --summary.\n${usage}`,
+            );
             return 1;
           }
           const recorded = recordOutcome({
@@ -1616,45 +1707,10 @@ async function main(argv: string[]): Promise<number> {
           console.log(formatOutcomeConfirmation(recorded));
           return 0;
         }
-        const outcomeId = positionals[0];
-        if (!outcomeId) {
-          console.error(
-            `${usage}\nShow: ${BINARY_NAME} outcome <outcome-id>\nList ids: ${BINARY_NAME} outcomes`,
-          );
-          return 1;
-        }
-        if (
-          actionFlag ||
-          assessment ||
-          summary ||
-          observedAt ||
-          evidenceParts.length > 0 ||
-          anyMeasurement
-        ) {
-          console.error(
-            `Recording an outcome requires --action, --assessment, and --summary.\n${usage}`,
-          );
-          return 1;
-        }
-        const record = getOutcome(baseDir, outcomeId);
-        console.log(formatOutcome(record));
-        return 0;
+        return runOutcomeList(baseDir, flags, repeated);
       }
       case "outcomes": {
-        const usage = `Usage: ${BINARY_NAME} outcomes [--action <action-id>]`;
-        const actionFlag = optionalFlagId(flags.action);
-        if (actionFlag === "missing") {
-          console.error(`--action requires an action id.\n${usage}`);
-          return 1;
-        }
-        if ((repeated.action ?? []).length > 0) {
-          console.error(`--action takes one exact id on the outcomes list.\n${usage}`);
-          return 1;
-        }
-        const filter = actionFlag ? { actionId: actionFlag } : undefined;
-        const records = listOutcomes(baseDir, filter);
-        console.log(formatOutcomeList(records, filter));
-        return 0;
+        return runOutcomeList(baseDir, flags, repeated);
       }
       case "incident-link": {
         const usage =
@@ -1680,11 +1736,16 @@ async function main(argv: string[]): Promise<number> {
           console.error(`--reason takes one exact claim.\n${usage}`);
           return 1;
         }
-        if (incidentParts.length > 0 || reason) {
-          if (positionals[0]) {
+        if (positionals[0]) {
+          if (incidentParts.length > 0 || reason) {
             console.error(`${usage}`);
             return 1;
           }
+          const record = getIncidentLink(baseDir, positionals[0]);
+          console.log(formatIncidentLink(record));
+          return 0;
+        }
+        if (reason || incidentParts.length >= 2) {
           if (!reason) {
             console.error(
               `Recording an incident link requires --reason.\n${usage}`,
@@ -1705,34 +1766,10 @@ async function main(argv: string[]): Promise<number> {
           console.log(formatIncidentLinkConfirmation(recorded));
           return 0;
         }
-        const linkId = positionals[0];
-        if (!linkId) {
-          console.error(
-            `${usage}\nList ids: ${BINARY_NAME} incident-links`,
-          );
-          return 1;
-        }
-        const record = getIncidentLink(baseDir, linkId);
-        console.log(formatIncidentLink(record));
-        return 0;
+        return runIncidentLinkList(baseDir, flags, repeated);
       }
       case "incident-links": {
-        const usage = `Usage: ${BINARY_NAME} incident-links [--incident <incident-id>]`;
-        const incidentFlag = optionalFlagId(flags.incident);
-        if (incidentFlag === "missing") {
-          console.error(`--incident requires an incident id.\n${usage}`);
-          return 1;
-        }
-        if ((repeated.incident ?? []).length > 0) {
-          console.error(
-            `--incident takes one exact id on the incident-links list.\n${usage}`,
-          );
-          return 1;
-        }
-        const filter = incidentFlag ? { incidentId: incidentFlag } : undefined;
-        const records = listIncidentLinks(baseDir, filter);
-        console.log(formatIncidentLinks(records, filter));
-        return 0;
+        return runIncidentLinkList(baseDir, flags, repeated);
       }
       case "precedents": {
         const usage = `Usage: ${BINARY_NAME} precedents --incident <incident-id> [--json]`;
