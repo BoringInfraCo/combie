@@ -234,9 +234,12 @@ function normalizeTopic(topic: string): string {
     incidents: "incident",
     "incident-links": "incident-link",
     recommendations: "recommendation",
-    decisions: "decision",
-    actions: "action",
-    outcomes: "outcome",
+    decision: "recommendation",
+    decisions: "recommendation",
+    action: "recommendation",
+    actions: "recommendation",
+    outcome: "recommendation",
+    outcomes: "recommendation",
   };
   return aliases[t] ?? t;
 }
@@ -635,6 +638,14 @@ Examples:
   ${BINARY_NAME} outcome --action act:… --assessment positive --summary "Error rate dropped" --metric error-rate --before 12.4 --after 1.1 --unit percent
   ${BINARY_NAME} outcomes --action act:…
   ${BINARY_NAME} outcome out:…
+
+${GLOBAL_DIR}`,
+
+  version: `combie version — show build version
+
+Usage:
+  ${BINARY_NAME} version
+  ${BINARY_NAME} --version
 
 ${GLOBAL_DIR}`,
 

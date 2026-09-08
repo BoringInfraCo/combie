@@ -107,10 +107,9 @@ describe("CLI grouped help", () => {
     ]) {
       const result = await capture(() => main(argv));
       expect(result.code).toBe(1);
-      expect(result.stderr).toMatch(/help --all|help <command>/);
-      expect(result.stderr).not.toMatch(
-        /help --all[\s\S]*help <command>|help <command>[\s\S]*help --all/,
-      );
+      expect(result.stderr).toContain("help --all");
+      expect(result.stderr).toContain("help <command>");
+      expect(result.stderr).toContain("not both");
     }
   });
 
