@@ -9,6 +9,7 @@ import {
   CombieError,
 } from "./errors.ts";
 import { BINARY_NAME } from "../cli/constants.ts";
+import { formatSyncNextSteps } from "./next-steps.ts";
 import {
   inferGitHubVercelRelationships,
   isGitHubVercelSourceFor,
@@ -402,12 +403,11 @@ export async function syncProviders(options: SyncOptions): Promise<SyncResult> {
         : results[0]?.ok
           ? `\n${results[0].total} resources stored.`
           : "";
-    const next =
-      ok && totalResources > 0
-        ? `\nNext: ${BINARY_NAME} resources`
-        : ok
-          ? `\nNext: ${BINARY_NAME} providers`
-          : "";
+    const next = formatSyncNextSteps(options.baseDir, {
+      results,
+      ok,
+      totalResources,
+    });
 
     return {
       results,
