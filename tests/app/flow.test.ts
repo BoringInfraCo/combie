@@ -93,7 +93,7 @@ describe("app vertical slice", () => {
       token: secret,
     });
     expect(connected.message).toContain("Connected");
-    expect(connected.message).toContain("Next:");
+    expect(connected.message).toContain("Next steps:");
     expect(connected.message).toContain("sync");
     expect(connected.message).not.toContain(secret);
     expect(connected.accountId).toBe("acc_test");
@@ -110,7 +110,7 @@ describe("app vertical slice", () => {
     expect(sync1.message).toContain("database");
     expect(sync1.message).toContain("KV");
     expect(sync1.message).toContain("zone");
-    expect(sync1.message).toContain("Next:");
+    expect(sync1.message).toContain("Next steps:");
     expect(sync1.message).toContain("resources");
     expect(sync1.message).not.toContain(secret);
 

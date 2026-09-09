@@ -33,6 +33,7 @@ import {
   getInvestigationContext,
   formatInvestigationContext,
 } from "../app/investigate.ts";
+import { formatInvestigateNextSteps } from "../app/next-steps.ts";
 import {
   composeTaskContext,
   normalizeTaskProfile,
@@ -868,7 +869,7 @@ async function main(argv: string[]): Promise<number> {
             ),
             listIncidentsForSubject(baseDir, investigation.subject.id),
             "subject",
-          ),
+          ) + formatInvestigateNextSteps(baseDir, investigation.subject.id),
         );
         return 0;
       }

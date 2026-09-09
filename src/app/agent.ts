@@ -38,6 +38,19 @@ export function resolveAgentBackends(names: string[] | null): AgentBackend[] {
   });
 }
 
+/** True when any agent config already contains a matching Combie MCP entry. */
+export function isAnyAgentMcpConfigured(baseDir: string): boolean {
+  const invocation = buildMcpInvocation(baseDir);
+  return agentBackends().some((backend) => {
+    try {
+      const entry = backend.readEntry();
+      return entry !== null && entryMatchesInvocation(entry, invocation);
+    } catch {
+      return false;
+    }
+  });
+}
+
 export function inspectAgents(baseDir: string): AgentStatusInfo[] {
   const invocation = buildMcpInvocation(baseDir);
   return agentBackends().map((backend) => {

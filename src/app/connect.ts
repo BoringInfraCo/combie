@@ -9,6 +9,7 @@ import {
   unknownProvider,
   CombieError,
 } from "./errors.ts";
+import { formatConnectNextSteps } from "./next-steps.ts";
 
 export interface ConnectOptions {
   baseDir: string;
@@ -374,8 +375,8 @@ export async function connectProvider(
       accountName: auth.accountName,
       message:
         `Connected ${provider.name}${accountPart}.\n` +
-        `Credential stored in the local restricted-permission credentials file.\n` +
-        `Next: ${BINARY_NAME} sync`,
+        `Credential stored in the local restricted-permission credentials file.` +
+        formatConnectNextSteps(options.baseDir, providerId),
     };
   } finally {
     store.close();
