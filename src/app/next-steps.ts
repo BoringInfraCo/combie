@@ -1,9 +1,4 @@
-import { findExecutable } from "../agent/detection.ts";
-import {
-  buildMcpInvocation,
-  entryMatchesInvocation,
-} from "../agent/invocation.ts";
-import { agentBackends } from "../agent/registry.ts";
+import { isAnyAgentMcpConfigured } from "./agent.ts";
 import { BINARY_NAME } from "../cli/constants.ts";
 import { Store } from "../storage/store.ts";
 import { listInvestigations } from "./investigations.ts";
@@ -33,22 +28,6 @@ export function formatNextStepsBlock(steps: NextStep[]): string {
   return `\n${lines.join("\n")}`;
 }
 
-export function isAnyAgentConfigured(baseDir: string): boolean {
-  const invocation = buildMcpInvocation(baseDir);
-  return agentBackends().some((backend) => {
-    const detection = findExecutable(backend.kind);
-    if (!detection.detected) {
-      return false;
-    }
-    try {
-      const entry = backend.readEntry();
-      return entry !== null && entryMatchesInvocation(entry, invocation);
-    } catch {
-      return false;
-    }
-  });
-}
-
 function withStore<T>(baseDir: string, fn: (store: Store) => T): T {
   const store = new Store(baseDir);
   try {
@@ -65,7 +44,7 @@ function isProviderConnected(store: Store, providerId: string): boolean {
 }
 
 function optionalAgentSetupStep(baseDir: string): NextStep | null {
-  if (isAnyAgentConfigured(baseDir)) {
+  if (isAnyAgentMcpConfigured(baseDir)) {
     return null;
   }
   return {

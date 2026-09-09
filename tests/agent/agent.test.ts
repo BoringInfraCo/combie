@@ -37,6 +37,7 @@ import {
   formatAgentStatusTable,
   formatSkillInstallHint,
   inspectAgents,
+  isAnyAgentMcpConfigured,
   removeAgents,
   setupAgents,
 } from "../../src/app/agent.ts";
@@ -395,6 +396,24 @@ command = "node"
     setupCursor(baseDir);
     expect(removeCursor()).toBe(true);
     expect(readCursorEntry()).toBeNull();
+  });
+
+  test("isAnyAgentMcpConfigured reads config even when the agent binary is missing", () => {
+    mkdirSync(join(home, ".codex"), { recursive: true });
+    writeFileSync(
+      join(home, ".codex", "config.toml"),
+      `[mcp_servers.combie]
+command = "bun"
+args = ["run", "combie", "mcp"]
+cwd = "${PROJECT_ROOT}"
+
+[mcp_servers.combie.env]
+COMBIE_HOME = "${baseDir}"
+`,
+    );
+    const statuses = inspectAgents(baseDir);
+    expect(statuses.find((s) => s.kind === "codex")!.status).toBe("not_detected");
+    expect(isAnyAgentMcpConfigured(baseDir)).toBe(true);
   });
 
   test("status shows configured/stale/available/not_detected", () => {
