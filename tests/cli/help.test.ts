@@ -100,11 +100,11 @@ describe("CLI grouped help", () => {
     expect(help.code).toBe(0);
     expect(help.stdout).toContain("combie version");
     expect(help.stdout).toContain("--version");
-    expect(help.stdout).not.toMatch(/^combie 0\.6\.1$/);
+    expect(help.stdout).not.toMatch(/^combie 0\.6\.2$/);
 
     const flag = await capture(() => main(["--version"]));
     expect(flag.code).toBe(0);
-    expect(flag.stdout).toBe("combie 0.6.1");
+    expect(flag.stdout).toBe("combie 0.6.2");
   });
 
   test("help nosuch fails without dumping full catalog", async () => {

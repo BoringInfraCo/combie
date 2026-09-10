@@ -66,11 +66,11 @@ describe("CLI commands", () => {
   test("version reports the beta package identity", async () => {
     const long = await capture(() => main(["--version"]));
     expect(long.code).toBe(0);
-    expect(long.stdout).toBe("combie 0.6.1");
+    expect(long.stdout).toBe("combie 0.6.2");
 
     const command = await capture(() => main(["version"]));
     expect(command.code).toBe(0);
-    expect(command.stdout).toBe("combie 0.6.1");
+    expect(command.stdout).toBe("combie 0.6.2");
   });
 
   test("init is idempotent", async () => {
